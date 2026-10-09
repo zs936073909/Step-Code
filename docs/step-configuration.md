@@ -121,6 +121,43 @@ the prompt; deleting that line asks again. `/theme` changes the theme later, and
 launches that already carry work (an initial prompt, a resumed session) skip the
 prompt entirely.
 
+## Interface language
+
+`locale` in the global `config.toml` selects the language of Step's own interface
+strings. It accepts a BCP-47-style tag such as `en` or `zh-CN`:
+
+```toml
+locale = "zh-CN"
+```
+
+`STEPCODE_LOCALE` overrides the setting for one run. English is the identity
+locale: when no catalog is loaded every string renders exactly as written in the
+source.
+
+Catalogs are JSON files. Built-in ones ship with the package; drop your own into
+`~/.stepcode/locales/<locale>.json` to add a language without rebuilding:
+
+```json
+{
+  "locale": "ja-JP",
+  "name": "日本語",
+  "messages": {
+    "Open settings menu": "設定メニューを開く"
+  }
+}
+```
+
+Keys are the English source strings themselves, and a key that is missing from
+the catalog falls back to English. That keeps catalogs cheap to maintain: when
+upstream rewrites a label, the stale key simply stops matching and the UI shows
+English instead of breaking. Values may use `{name}` placeholders, which are
+filled from the call site.
+
+Tool schema fields (`name`, `description`, `promptSnippet`), the system prompt,
+settings keys and enum values, and command names are deliberately never
+translated — they are contracts with the model or with persisted configuration,
+not interface copy.
+
 ## MCP startup in the terminal
 
 Interactive Step sessions start MCP discovery and connections in the background.

@@ -295,6 +295,8 @@ for platform in "${PLATFORMS[@]}"; do
     node ../../scripts/copy-photon-wasm.mjs "$OUTPUT_DIR/$platform"
     mkdir -p "$OUTPUT_DIR/$platform/theme"
     cp dist/theme/*.json "$OUTPUT_DIR/$platform/theme/"
+    mkdir -p "$OUTPUT_DIR/$platform/locale"
+    cp dist/locale/*.json "$OUTPUT_DIR/$platform/locale/"
     cp -r dist/core/export-html "$OUTPUT_DIR/$platform/"
     cp -r docs "$OUTPUT_DIR/$platform/"
     cp -r examples "$OUTPUT_DIR/$platform/"

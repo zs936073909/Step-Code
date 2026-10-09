@@ -86,6 +86,7 @@ import { SettingsManager, type SettingsManagerCreateOptions } from "./core/setti
 import type { SystemPromptProduct } from "./core/system-prompt.ts";
 import { hasTrustRequiringProjectResources, ProjectTrustStore } from "./core/trust-manager.ts";
 import { builtInExtensions } from "./features/index.ts";
+import { initLocale, STEPCODE_LOCALE_ENV } from "./locale/locale.ts";
 import { runMigrations, showDeprecationWarnings } from "./migrations.ts";
 import { runPrintMode, runRpcMode } from "./modes/index.ts";
 import type { InteractiveModeOptions, StartupTuiPathOptions, StartupUiHooks } from "./modes/interactive-contract.ts";
@@ -738,6 +739,11 @@ export interface MainOptions {
 	disableBackgroundServices?: boolean;
 	/** Fallback interactive theme when settings and CLI flags do not select one. */
 	defaultTheme?: string;
+	/**
+	 * Fallback UI locale when settings and the environment do not select one.
+	 * Resolved lazily because product settings managers are built inside `runMain`.
+	 */
+	defaultLocale?: string | (() => string | undefined);
 	/** Product model fallback applied after global/project settings. */
 	defaultProvider?: string;
 	/** Product model id fallback applied after global/project settings. */
@@ -1342,6 +1348,10 @@ export async function prepareMain(args: string[], options?: MainOptions): Promis
 	);
 	setThemeStorageDir(agentDir);
 	initTheme(settingsManager.getTheme() ?? options?.defaultTheme, appMode === "interactive");
+	const requestedLocale =
+		process.env[STEPCODE_LOCALE_ENV]?.trim() ||
+		(typeof options?.defaultLocale === "function" ? options.defaultLocale() : options?.defaultLocale);
+	initLocale(requestedLocale);
 
 	// Show deprecation warnings in interactive mode
 	if (appMode === "interactive" && deprecationWarnings.length > 0) {

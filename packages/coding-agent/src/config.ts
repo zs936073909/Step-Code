@@ -93,6 +93,21 @@ export function getThemesDir(): string {
 }
 
 /**
+ * Get path to built-in locale catalogs directory (shipped with package)
+ * - For Bun binary: locale/ next to executable
+ * - For Node.js (dist/): dist/locale/
+ * - For tsx (src/): src/locale/
+ */
+export function getLocalesDir(): string {
+	if (isBunBinary) {
+		return join(getPackageDir(), "locale");
+	}
+	const packageDir = getPackageDir();
+	const srcOrDist = existsSync(join(packageDir, "src")) ? "src" : "dist";
+	return join(packageDir, srcOrDist, "locale");
+}
+
+/**
  * Get path to HTML export template directory (shipped with package)
  * - For Bun binary: export-html/ next to executable
  * - For Node.js (dist/): dist/core/export-html/
@@ -217,6 +232,11 @@ export function getAgentDir(): string {
 /** Get path to user's custom themes directory */
 export function getCustomThemesDir(): string {
 	return join(getAgentDir(), "themes");
+}
+
+/** Get path to user's custom locale catalogs directory */
+export function getCustomLocalesDir(): string {
+	return join(getAgentDir(), "locales");
 }
 
 /** Get path to models.json */

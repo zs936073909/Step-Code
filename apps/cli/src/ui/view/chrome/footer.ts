@@ -1,6 +1,6 @@
 import { isAbsolute, relative, resolve, sep } from "node:path";
 import type { AgentSession, ReadonlyFooterDataProvider } from "@step-harness/coding-agent";
-import { addUsageToTotals, createUsageTotals, theme } from "@step-harness/coding-agent";
+import { addUsageToTotals, createUsageTotals, t, theme } from "@step-harness/coding-agent";
 import { type Component, sliceByColumn, truncateToWidth, visibleWidth } from "@step-harness/pi-tui";
 
 /**
@@ -324,19 +324,24 @@ export class FooterComponent implements Component {
 			.trim()
 			.toLowerCase()
 			.replace(/[\s_-]+/gu, "");
+		// The labels above are display copy, so they are translated here. The status
+		// channel itself (see publishStepPermissionStatus) intentionally stays English
+		// because the match above keys off its text.
 		const mode =
 			normalizedStatusPreset === "autopilot"
-				? { label: "Autopilot", paint: warning }
+				? { label: t("Autopilot"), paint: warning }
 				: normalizedStatusPreset === "bypass"
-					? { label: "Bypass", paint: warning }
+					? { label: t("Bypass"), paint: warning }
 					: normalizedRawMode === "auto" || normalizedRawMode === "bypasspermissions"
-						? { label: "Bypass", paint: warning }
+						? { label: t("Bypass"), paint: warning }
 						: normalizedStatusPreset === "readonly" ||
 								normalizedRawMode === "strict" ||
 								normalizedRawMode === "readonly"
-							? { label: "Read-only", paint: muted }
-							: { label: "Ask", paint: accent };
-		const displayMode = this.bashMode ? { label: "Shell", paint: (text: string) => theme.fg("error", text) } : mode;
+							? { label: t("Read-only"), paint: muted }
+							: { label: t("Ask"), paint: accent };
+		const displayMode = this.bashMode
+			? { label: t("Shell"), paint: (text: string) => theme.fg("error", text) }
+			: mode;
 		// The permission cycle was reachable but invisible: the footer named the
 		// mode and nothing said how to change it. Feedback issue-b39a464025061aa5.
 		const cycleHint = !this.bashMode && safeWidth >= 60 ? (this.permissionCycleKey() ?? "") : "";

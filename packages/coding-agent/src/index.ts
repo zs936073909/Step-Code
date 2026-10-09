@@ -493,6 +493,21 @@ export {
 // registration time, while the pure runtime contracts are useful to embedders
 // and tests.
 export * from "./features/workflow/index.ts";
+export {
+	DEFAULT_LOCALE,
+	getAvailableLocales,
+	getLocale,
+	initLocale,
+	type LocaleCode,
+	type LocaleInfo,
+	type MessageCatalog,
+	normalizeLocale,
+	registerLocaleCatalog,
+	resetLocale,
+	STEPCODE_LOCALE_ENV,
+	setLocale,
+	t,
+} from "./locale/locale.ts";
 // Main entry point
 export {
 	type MainOptions,

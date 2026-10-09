@@ -104,6 +104,7 @@ import {
 	Theme,
 	type ThemeColor,
 	type ToolStatus,
+	t,
 	theme,
 	VERSION,
 } from "@step-harness/coding-agent";
@@ -859,9 +860,12 @@ export class InteractiveMode {
 
 	private createBaseAutocompleteProvider(): AutocompleteProvider {
 		// Define commands for autocomplete
+		// Built-in descriptions are translated here rather than in the data module so
+		// the exported catalog stays canonical English (extensions and tests read it)
+		// and the locale can still change after this module is imported.
 		const slashCommands: SlashCommand[] = BUILTIN_SLASH_COMMANDS.map((command) => ({
 			name: command.name,
-			description: command.description,
+			description: t(command.description),
 			...(command.argumentHint && { argumentHint: command.argumentHint }),
 		}));
 

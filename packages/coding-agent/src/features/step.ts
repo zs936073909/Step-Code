@@ -8,6 +8,7 @@ import type {
 	InlineExtension,
 } from "../core/extensions/types.ts";
 import { BUILTIN_SLASH_COMMANDS } from "../core/slash-commands.ts";
+import { t } from "../locale/locale.ts";
 import type { FeedbackIdentity } from "../step/feedback/types.ts";
 import { STEP_INIT_PROMPT } from "../step/init-prompt.ts";
 import { createStepMcpExtension } from "../step/mcp.ts";
@@ -332,18 +333,23 @@ export function createStepExtension(options: StepExtensionOptions = {}): Extensi
 				autoResume.reset();
 				syncNativeRetry(ctx, state.autoResume);
 				publishStepPermissionStatus(ctx.ui, state);
-				ctx.ui.notify(`Permission mode: ${getStepPermissionPreset(state.preset)?.label ?? state.preset}`, "info");
+				ctx.ui.notify(
+					t("Permission mode: {mode}", {
+						mode: t(getStepPermissionPreset(state.preset)?.label ?? state.preset),
+					}),
+					"info",
+				);
 				return;
 			}
 
 			let selected = requested;
 			if (!selected) {
 				const options = permissionsPresetsForSelector();
-				selected = (await ctx.ui.select("Permission mode", options))?.trim().toLowerCase() ?? "";
+				selected = (await ctx.ui.select(t("Permission mode"), options))?.trim().toLowerCase() ?? "";
 			}
 			const state = permissions.setPreset(selected);
 			if (!state) {
-				ctx.ui.notify("Unknown permission mode. Use ask, read-only, bypass, or autopilot.", "warning");
+				ctx.ui.notify(t("Unknown permission mode. Use ask, read-only, bypass, or autopilot."), "warning");
 				return;
 			}
 			autoResume.reset();
@@ -351,13 +357,18 @@ export function createStepExtension(options: StepExtensionOptions = {}): Extensi
 			persistPermissionState(options.stepSettings, state);
 			syncNativeRetry(ctx, state.autoResume);
 			publishStepPermissionStatus(ctx.ui, state);
-			ctx.ui.notify(`Permission mode: ${getStepPermissionPreset(state.preset)?.label ?? state.preset}`, "info");
+			ctx.ui.notify(
+				t("Permission mode: {mode}", {
+					mode: t(getStepPermissionPreset(state.preset)?.label ?? state.preset),
+				}),
+				"info",
+			);
 		};
 
 		// Keep only the plural product command. The old singular alias was never a
 		// separate approval engine and is intentionally no longer exposed.
 		pi.registerCommand("permissions", {
-			description: "Choose Step tool approval mode",
+			description: t("Choose Step tool approval mode"),
 			handler: async (args, ctx) => {
 				recordStepSlashCommand(options.telemetry, "/permissions", true);
 				await handlePermissionCommand(args, ctx);

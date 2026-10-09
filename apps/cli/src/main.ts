@@ -206,6 +206,7 @@ const stepMainOptions: MainOptions = {
 	allowedAuthProviders: [STEP_PROVIDER_ID, ...(stepCodeConfig?.providers.map((provider) => provider.id) ?? [])],
 	disableBackgroundServices: isStepServicesDisabled(),
 	defaultTheme: getStepDefaultTheme(),
+	defaultLocale: () => currentStepSettingsManager?.getStepLocale(),
 	defaultProvider: stepCodeConfig?.defaultProvider ?? stepPersistedDefaults.provider ?? STEP_DEFAULT_PROVIDER,
 	defaultModel: stepCodeConfig?.defaultModel ?? stepPersistedDefaults.model ?? STEP_DEFAULT_MODEL,
 	runtimeHostFactory: createStepCode,

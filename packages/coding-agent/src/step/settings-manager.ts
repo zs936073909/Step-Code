@@ -12,6 +12,7 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import lockfile from "proper-lockfile";
 import { SettingsManager, type SettingsManagerCreateOptions } from "../core/settings-manager.ts";
+import { normalizeLocale } from "../locale/locale.ts";
 import { stripBom } from "../utils/text.ts";
 import { readStepConfig, StepTomlSettingsStorage, writeStepConfig } from "./config-toml.ts";
 import { resolveStepAgentDir, resolveStepConfigDir } from "./environment.ts";
@@ -35,6 +36,8 @@ export interface StepSettings {
 	autoResume?: boolean;
 	/** Enables the user feedback submission flow. Defaults to enabled. */
 	feedbackEnabled?: boolean;
+	/** UI language, e.g. `en` or `zh-CN`. Missing catalog entries fall back to English. */
+	locale?: string;
 }
 
 type JsonObject = Record<string, unknown>;
@@ -83,6 +86,9 @@ export interface StepSettingsManager extends SettingsManager {
 	setStepNonInteractiveApproval(mode: StepNonInteractiveApproval | undefined): void;
 	getStepAutoResume(): boolean | undefined;
 	setStepAutoResume(enabled: boolean | undefined): void;
+	/** Active UI locale, or undefined when the identity (English) locale applies. */
+	getStepLocale(): string | undefined;
+	setStepLocale(locale: string | undefined): void;
 }
 
 interface ReadResult {
@@ -192,6 +198,10 @@ function normalizeSettings(value: JsonObject): StepSettings {
 	}
 
 	const feedbackEnabledCandidates = [value.feedbackEnabled, asObject(value.feedback)?.enabled];
+	const localeCandidate = value.locale;
+	if (localeCandidate !== undefined && typeof localeCandidate === "string" && localeCandidate.trim()) {
+		result.locale = localeCandidate.trim();
+	}
 	for (const candidate of feedbackEnabledCandidates) {
 		if (typeof candidate === "boolean") {
 			result.feedbackEnabled = candidate;
@@ -207,6 +217,7 @@ const STEP_SETTING_ALIASES: Record<keyof StepSettings, readonly string[]> = {
 	nonInteractiveApproval: ["noninteractiveApproval"],
 	autoResume: ["autopilot"],
 	feedbackEnabled: [],
+	locale: [],
 };
 
 const STEP_SETTING_NESTED_ALIASES: Record<keyof StepSettings, readonly (readonly string[])[]> = {
@@ -231,6 +242,7 @@ const STEP_SETTING_NESTED_ALIASES: Record<keyof StepSettings, readonly (readonly
 		["tools", "approval", "autopilot"],
 	],
 	feedbackEnabled: [["feedback", "enabled"]],
+	locale: [],
 };
 
 function deleteNestedAlias(root: JsonObject, path: readonly string[]): void {
@@ -280,6 +292,9 @@ function validatePatch(settings: Partial<StepSettings>): Partial<StepSettings> {
 	}
 	if (settings.feedbackEnabled !== undefined && typeof settings.feedbackEnabled !== "boolean") {
 		throw new Error(`Invalid Step feedbackEnabled setting: ${String(settings.feedbackEnabled)}`);
+	}
+	if (settings.locale !== undefined && normalizeLocale(settings.locale) === undefined) {
+		throw new Error(`Invalid Step locale setting: ${String(settings.locale)}`);
 	}
 	const normalized = { ...settings };
 	if (settings.permissionPreset !== undefined) {
@@ -566,6 +581,17 @@ class StepSettingsDecorator {
 			throw new Error(`Invalid Step autoResume setting: ${String(enabled)}`);
 		}
 		this.setEffectiveStepSettings({ autoResume: enabled });
+	}
+
+	getStepLocale(): string | undefined {
+		return this.getStepSettings().locale;
+	}
+
+	setStepLocale(locale: string | undefined): void {
+		if (locale !== undefined && normalizeLocale(locale) === undefined) {
+			throw new Error(`Invalid Step locale setting: ${String(locale)}`);
+		}
+		this.setEffectiveStepSettings({ locale });
 	}
 
 	setProjectTrusted(trusted: boolean): void {
