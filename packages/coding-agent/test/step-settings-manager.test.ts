@@ -86,6 +86,18 @@ describe("Step settings manager decorator", () => {
 		expect(existsSync(join(fixture.projectDir, ".pi", "step-settings.json"))).toBe(false);
 	});
 
+	it("routes Step locale settings through the decorator instead of the Pi manager", async () => {
+		const { manager, fixture } = makeManager();
+
+		expect(manager.getStepLocale()).toBeUndefined();
+		manager.setStepLocale("zh-CN");
+		await manager.flush();
+
+		expect(manager.getStepLocale()).toBe("zh-CN");
+		expect(manager.getStepSettings()).toEqual({ locale: "zh-CN" });
+		expect(JSON.parse(readFileSync(fixture.paths.global, "utf8"))).toEqual({ locale: "zh-CN" });
+	});
+
 	it("writes effective fields back to the scope currently overriding them", () => {
 		const { manager, fixture } = makeManager();
 		manager.setStepSettings({ permissionPreset: "ask", autoResume: false });

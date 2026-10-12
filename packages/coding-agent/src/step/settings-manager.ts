@@ -638,6 +638,8 @@ export function decorateStepSettingsManager(
 		"setStepNonInteractiveApproval",
 		"getStepAutoResume",
 		"setStepAutoResume",
+		"getStepLocale",
+		"setStepLocale",
 		"setProjectTrusted",
 		"reload",
 		"flush",
